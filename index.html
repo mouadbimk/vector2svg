@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>VectorForge — SVG to Android XML</title>
+<style>
+:root{
+  --bg:#080b12;--panel:#10151f;--panel2:#151b27;--line:#273142;
+  --text:#edf2f7;--muted:#8d99aa;--accent:#7c5cff;--accent2:#a78bfa;
+  --ok:#35d07f;--warn:#f6c85f;--danger:#ff6b7a;
+}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0%,#1a1730 0,#080b12 38%),var(--bg);color:var(--text);font:14px Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif}
+button,input,textarea{font:inherit}.app{min-height:100vh}.top{height:68px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;padding:0 28px;background:#090c13d9;backdrop-filter:blur(12px);position:sticky;top:0;z-index:5}
+.brand{display:flex;gap:11px;align-items:center;font-weight:800;font-size:18px}.logo{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#36c9ff);display:grid;place-items:center;box-shadow:0 8px 30px #7c5cff33}
+.top-actions{display:flex;gap:8px}.btn{border:1px solid var(--line);background:#121824;color:var(--text);padding:9px 13px;border-radius:9px;cursor:pointer}.btn:hover{border-color:#46536b;background:#18202d}.primary{background:var(--accent);border-color:var(--accent)}.primary:hover{background:#6d4df0}
+.main{max-width:1500px;margin:auto;padding:28px}.hero{text-align:center;margin:10px 0 28px}.hero h1{font-size:42px;letter-spacing:-1.7px;margin:0 0 8px}.hero p{color:var(--muted);margin:0;font-size:15px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}.card{background:linear-gradient(180deg,#111722,#0e131c);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}.card-head{height:52px;padding:0 15px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}.title{font-weight:700}.muted{color:var(--muted)}.body{padding:14px}
+.drop{height:220px;border:1.5px dashed #3b4659;border-radius:12px;display:grid;place-items:center;text-align:center;background:#0b1018;transition:.2s;cursor:pointer}.drop.drag{border-color:var(--accent2);background:#17132a}.drop strong{display:block;font-size:16px;margin-bottom:5px}.drop span{color:var(--muted);font-size:12px}.drop .upload-icon{font-size:35px;margin-bottom:8px}
+textarea{width:100%;min-height:220px;resize:vertical;background:#090d14;color:#dfe7f2;border:1px solid var(--line);border-radius:10px;padding:14px;outline:none;font:12px/1.55 ui-monospace,SFMono-Regular,Menlo,monospace}.textarea-wrap{position:relative}.counter{position:absolute;right:10px;bottom:8px;color:#637084;font-size:11px}
+.preview{height:280px;border:1px solid var(--line);border-radius:10px;background-color:#0b1018;background-image:linear-gradient(45deg,#111722 25%,transparent 25%),linear-gradient(-45deg,#111722 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#111722 75%),linear-gradient(-45deg,transparent 75%,#111722 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;display:grid;place-items:center;overflow:hidden}.preview svg{max-width:85%;max-height:85%;filter:drop-shadow(0 10px 20px #0007)}
+.controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:12px}.field label{display:block;color:var(--muted);font-size:11px;margin:0 0 5px}.field input{width:100%;background:#0a0f17;border:1px solid var(--line);color:var(--text);border-radius:8px;padding:8px;outline:none}.field input:focus{border-color:var(--accent)}
+.output{margin-top:16px}.code{min-height:420px}.status{display:flex;align-items:center;gap:7px;font-size:12px}.dot{width:7px;height:7px;border-radius:50%;background:var(--ok)}.dot.warn{background:var(--warn)}.dot.bad{background:var(--danger)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}.badge{font-size:11px;padding:5px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.warnings{margin-top:10px}.warning{border:1px solid #6b5422;background:#211b0c;color:#e9d28b;padding:9px;border-radius:8px;font-size:12px;margin-top:7px}.success{border-color:#235f42;background:#0d2118;color:#91e7b7}
+.full{grid-column:1/-1}.features{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.feature{padding:16px;background:#0e141e;border:1px solid var(--line);border-radius:11px}.feature b{display:block;margin-bottom:5px}.feature span{font-size:12px;color:var(--muted)}
+.footer{text-align:center;color:#647083;padding:28px}.hidden{display:none}
+@media(max-width:950px){.grid{grid-template-columns:1fr}.full{grid-column:auto}.controls{grid-template-columns:1fr 1fr}.features{grid-template-columns:1fr 1fr}.hero h1{font-size:32px}}@media(max-width:560px){.main{padding:14px}.controls,.features{grid-template-columns:1fr}.top{padding:0 14px}.top-actions .btn:first-child{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+<header class="top">
+  <div class="brand"><div class="logo">⌁</div> VectorForge</div>
+  <div class="top-actions"><button class="btn" id="sampleBtn">Load sample</button><button class="btn primary" id="downloadTop">Download XML</button></div>
+</header>
+
+<main class="main">
+<section class="hero">
+  <h1>SVG → Android XML</h1>
+  <p>Convert SVG icons into Android Vector Drawable XML directly in your browser.</p>
+</section>
+
+<div class="grid">
+  <section class="card">
+    <div class="card-head"><span class="title">1. Input SVG</span><span class="badge" id="fileBadge">No file</span></div>
+    <div class="body">
+      <div class="drop" id="drop">
+        <div><div class="upload-icon">⇧</div><strong>Drop SVG here</strong><span>or click to choose a .svg file</span><br><button class="btn" id="chooseBtn" style="margin-top:12px">Choose SVG</button></div>
+      </div>
+      <input class="hidden" id="file" type="file" accept=".svg,image/svg+xml">
+      <div style="margin-top:12px" class="textarea-wrap">
+        <textarea id="source" spellcheck="false" placeholder="Or paste SVG code here…"></textarea>
+        <div class="counter" id="counter">0 chars</div>
+      </div>
+    </div>
+  </section>
+
+  <section class="card">
+    <div class="card-head"><span class="title">2. Preview</span><span class="status"><i class="dot" id="statusDot"></i><span id="status">Ready</span></span></div>
+    <div class="body">
+      <div class="preview" id="preview"></div>
+      <div class="controls">
+        <div class="field"><label>Android width</label><input id="width" value="24dp"></div>
+        <div class="field"><label>Android height</label><input id="height" value="24dp"></div>
+        <div class="field"><label>Viewport width</label><input id="vw" value="24"></div>
+        <div class="field"><label>Viewport height</label><input id="vh" value="24"></div>
+      </div>
+      <div class="actions"><button class="btn" id="reset">Reset settings</button><button class="btn" id="copy">Copy XML</button><button class="btn primary" id="download">Download XML</button></div>
+      <div class="warnings" id="warnings"></div>
+    </div>
+  </section>
+
+  <section class="card full output">
+    <div class="card-head"><span class="title">3. Android Vector Drawable</span><span class="badge" id="stats">0 paths</span></div>
+    <div class="body textarea-wrap">
+      <textarea class="code" id="output" spellcheck="false" readonly placeholder="Converted XML will appear here…"></textarea>
+      <div class="counter" id="outCounter">0 chars</div>
+    </div>
+  </section>
+
+  <section class="full">
+    <div class="features">
+      <div class="feature"><b>Client-side</b><span>Your SVG stays in the browser. No upload server required.</span></div>
+      <div class="feature"><b>Shape conversion</b><span>Paths, circles, ellipses, rectangles, lines, polygons and polylines.</span></div>
+      <div class="feature"><b>Style handling</b><span>Fill, stroke, opacity, CSS styles and common color formats.</span></div>
+      <div class="feature"><b>Compatibility warnings</b><span>Detects gradients, masks, filters and unsupported SVG features.</span></div>
+    </div>
+  </section>
+</div>
+<div class="footer">VectorForge • SVG to Android Vector Drawable • Runs entirely in your browser</div>
+</main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+let lastXml = "";
+const SAMPLE = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2C6.477 2 2 6.477 2 12s4.477 10 10 10 10-4.477 10-10S17.523 2 12 2Z" stroke="#7C5CFF" stroke-width="2"/>
+<path d="m8 12 2.5 2.5L16 9" stroke="#35D07F" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>`;
+
+$("chooseBtn").onclick = e => { e.stopPropagation(); $("file").click(); };
+$("drop").onclick = () => $("file").click();
+$("file").onchange = e => { const f=e.target.files[0]; if(f) readFile(f); };
+$("drop").ondragover = e => { e.preventDefault(); $("drop").classList.add("drag"); };
+$("drop").ondragleave = () => $("drop").classList.remove("drag");
+$("drop").ondrop = e => { e.preventDefault(); $("drop").classList.remove("drag"); const f=e.dataTransfer.files[0]; if(f && (f.type.includes("svg") || f.name.endsWith(".svg"))) readFile(f); };
+$("sampleBtn").onclick = () => { $("source").value=SAMPLE; $("fileBadge").textContent="Sample SVG"; convert(); };
+
+function readFile(file){
+  const reader = new FileReader();
+  reader.onload = () => { $("source").value=reader.result; $("fileBadge").textContent=file.name; convert(); };
+  reader.readAsText(file);
+}
+
+$("source").addEventListener("input", convert);
+["width","height","vw","vh"].forEach(id => $(id).addEventListener("input", convert));
+
+function esc(s){return String(s).replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+
+function parseStyle(el){
+  const style={};
+  const raw=el.getAttribute("style") || "";
+  raw.split(";").forEach(pair=>{
+    const [k,...v]=pair.split(":");
+    if(k && v.length) style[k.trim()]=v.join(":").trim();
+  });
+  return style;
+}
+function attr(el,name, fallback=null){
+  const style=parseStyle(el);
+  return el.getAttribute(name) ?? style[name] ?? fallback;
+}
+function color(c){
+  if(!c || c==="none") return c==="none" ? "#00000000" : "#FF000000";
+  c=c.trim();
+  if(/^#[0-9a-f]{3}$/i.test(c)) return "#FF"+c[1]+c[1]+c[2]+c[2]+c[3]+c[3];
+  if(/^#[0-9a-f]{6}$/i.test(c)) return "#FF"+c.slice(1);
+  if(/^#[0-9a-f]{8}$/i.test(c)) return "#"+c.slice(1);
+  const rgb=c.match(/^rgba?\\(([^)]+)\\)$/i);
+  if(rgb){
+    const p=rgb[1].split(",").map(x=>x.trim());
+    const r=+p[0],g=+p[1],b=+p[2],a=p[3]===undefined?1:parseFloat(p[3]);
+    return "#"+Math.round(a*255).toString(16).padStart(2,"0")+[r,g,b].map(x=>x.toString(16).padStart(2,"0")).join("");
+  }
+  const names={black:"#FF000000",white:"#FFFFFFFF",red:"#FFFF0000",green:"#FF008000",blue:"#FF0000FF",yellow:"#FFFFFF00",transparent:"#00000000"};
+  return names[c.toLowerCase()] || c;
+}
+function num(v,d=0){ const n=parseFloat(v); return Number.isFinite(n)?n:d; }
+function pointsToPath(points,close){
+  const pts=points.trim().split(/[\\s,]+/).map(Number).filter(Number.isFinite);
+  let d="";
+  for(let i=0;i<pts.length;i+=2) d+=(i===0?"M":"L")+pts[i]+","+pts[i+1]+" ";
+  return d+(close?"Z":"");
+}
+function shapeToPath(el){
+  const tag=el.tagName.toLowerCase();
+  if(tag==="path") return el.getAttribute("d")||"";
+  if(tag==="line") return `M${num(attr(el,"x1"))},${num(attr(el,"y1"))} L${num(attr(el,"x2"))},${num(attr(el,"y2"))}`;
+  if(tag==="polyline"||tag==="polygon") return pointsToPath(attr(el,"points",""),tag==="polygon");
+  if(tag==="rect"){
+    const x=num(attr(el,"x")),y=num(attr(el,"y")),w=num(attr(el,"width")),h=num(attr(el,"height"));
+    const rx=Math.min(num(attr(el,"rx")),w/2), ry=Math.min(num(attr(el,"ry"),rx),h/2);
+    if(rx||ry) return `M${x+rx},${y} H${x+w-rx} A${rx},${ry} 0 0 1 ${x+w},${y+ry} V${y+h-ry} A${rx},${ry} 0 0 1 ${x+w-rx},${y+h} H${x+rx} A${rx},${ry} 0 0 1 ${x},${y+h-ry} V${y+ry} A${rx},${ry} 0 0 1 ${x+rx},${y} Z`;
+    return `M${x},${y} H${x+w} V${y+h} H${x} Z`;
+  }
+  if(tag==="circle"){
+    const cx=num(attr(el,"cx")),cy=num(attr(el,"cy")),r=num(attr(el,"r"));
+    return `M${cx},${cy-r} A${r},${r} 0 1 1 ${cx},${cy+r} A${r},${r} 0 1 1 ${cx},${cy-r} Z`;
+  }
+  if(tag==="ellipse"){
+    const cx=num(attr(el,"cx")),cy=num(attr(el,"cy")),rx=num(attr(el,"rx")),ry=num(attr(el,"ry"));
+    return `M${cx},${cy-ry} A${rx},${ry} 0 1 1 ${cx},${cy+ry} A${rx},${ry} 0 1 1 ${cx},${cy-ry} Z`;
+  }
+  return "";
+}
+function matrixFromTransform(t){
+  const m=[1,0,0,1,0,0];
+  if(!t) return m;
+  const re=/([a-zA-Z]+)\\(([^)]*)\\)/g; let x;
+  while((x=re.exec(t))){
+    const type=x[1],v=x[2].split(/[\\s,]+/).map(Number).filter(Number.isFinite);
+    if(type==="translate"){m[4]+=v[0]||0;m[5]+=v[1]||0}
+    else if(type==="scale"){m[0]*=v[0]||1;m[3]*=v.length>1?v[1]:v[0]||1}
+    else if(type==="rotate"){ /* retained as warning; path coordinates are left untouched */ }
+  }
+  return m;
+}
+function collect(el, out, inherited={}){
+  const tag=el.tagName.toLowerCase();
+  const local={...inherited};
+  ["fill","stroke","stroke-width","stroke-linecap","stroke-linejoin","opacity","fill-opacity","stroke-opacity"].forEach(k=>{
+    const v=attr(el,k,null); if(v!==null) local[k]=v;
+  });
+  if(tag==="g" || tag==="svg"){
+    [...el.children].forEach(c=>collect(c,out,local));
+    return;
+  }
+  if(["path","rect","circle","ellipse","line","polygon","polyline"].includes(tag)){
+    out.push({el,style:local,transform:el.getAttribute("transform")||""});
+  }
+}
+function androidPath(item){
+  const el=item.el,s=item.style,d=shapeToPath(el);
+  if(!d) return "";
+  const fill=color(s.fill || attr(el,"fill") || "#000000");
+  const stroke=s.stroke;
+  const opacity=s.opacity;
+  const attrs=[];
+  if(fill && fill!=="none") attrs.push(`android:fillColor="${esc(fill)}"`);
+  if(stroke && stroke!=="none"){
+    attrs.push(`android:strokeColor="${esc(color(stroke))}"`);
+    attrs.push(`android:strokeWidth="${num(s["stroke-width"],1)}"`);
+    if(s["stroke-linecap"]) attrs.push(`android:strokeLineCap="${esc(s["stroke-linecap"])}"`);
+    if(s["stroke-linejoin"]) attrs.push(`android:strokeLineJoin="${esc(s["stroke-linejoin"])}"`);
+  }
+  if(opacity!==null && opacity!==undefined) attrs.push(`android:fillAlpha="${num(opacity,1)}"`);
+  if(s["fill-opacity"]) attrs.push(`android:fillAlpha="${num(s["fill-opacity"],1)}"`);
+  return `    <path ${attrs.join(" ")} android:pathData="${esc(d)}" />`;
+}
+function renderPreview(svgText){
+  $("preview").innerHTML="";
+  try{
+    const doc=new DOMParser().parseFromString(svgText,"image/svg+xml");
+    if(doc.querySelector("parsererror")) throw Error("Invalid SVG");
+    const svg=doc.documentElement;
+    svg.removeAttribute("width");svg.removeAttribute("height");
+    svg.style.width="220px";svg.style.height="220px";
+    $("preview").appendChild(document.importNode(svg,true));
+  }catch(e){ $("preview").textContent="Preview unavailable"; }
+}
+function convert(){
+  const source=$("source").value.trim();
+  $("counter").textContent=source.length+" chars";
+  if(!source){ $("output").value=""; $("outCounter").textContent="0 chars"; $("stats").textContent="0 paths"; $("warnings").innerHTML=""; $("status").textContent="Ready"; return; }
+  try{
+    const doc=new DOMParser().parseFromString(source,"image/svg+xml");
+    if(doc.querySelector("parsererror")) throw Error("Invalid SVG XML");
+    const svg=doc.documentElement;
+    const vb=(svg.getAttribute("viewBox")||"").trim().split(/[\\s,]+/).map(Number);
+    if(vb.length!==4 || vb.some(n=>!Number.isFinite(n))) throw Error("SVG must contain a valid viewBox, e.g. 0 0 24 24");
+    $("vw").value=vb[2];$("vh").value=vb[3];
+    const items=[];collect(svg,items,{});
+    const paths=items.map(androidPath).filter(Boolean);
+    const warnings=[];
+    if(svg.querySelector("linearGradient,radialGradient")) warnings.push("Gradients detected. Android Vector Drawable support differs from SVG gradients; review the result.");
+    if(svg.querySelector("filter")) warnings.push("SVG filters detected. Android Vector Drawable does not support arbitrary SVG filters.");
+    if(svg.querySelector("mask,clipPath")) warnings.push("Mask/clipPath detected. These may require manual conversion.");
+    if(items.some(x=>/rotate|skew/i.test(x.transform))) warnings.push("Rotate/skew transforms detected. Review transformed elements.");
+    const width=$("width").value||"24dp",height=$("height").value||"24dp",vw=$("vw").value||vb[2],vh=$("vh").value||vb[3];
+    lastXml=`<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="${esc(width)}"
+    android:height="${esc(height)}"
+    android:viewportWidth="${esc(vw)}"
+    android:viewportHeight="${esc(vh)}">
+
+${paths.join("\\n")}
+
+</vector>`;
+    $("output").value=lastXml;$("outCounter").textContent=lastXml.length+" chars";$("stats").textContent=paths.length+" paths";
+    $("warnings").innerHTML=warnings.length?warnings.map(w=>`<div class="warning">⚠ ${esc(w)}</div>`).join(""):`<div class="warning success">✓ Conversion completed. Review complex SVG features before shipping.</div>`;
+    $("status").textContent="Converted";$("statusDot").className="dot";renderPreview(source);
+  }catch(e){
+    $("output").value="";$("warnings").innerHTML=`<div class="warning">✕ ${esc(e.message)}</div>`;$("status").textContent="Error";$("statusDot").className="dot bad";
+  }
+}
+$("copy").onclick=async()=>{if(!lastXml)return;await navigator.clipboard.writeText(lastXml);$("copy").textContent="Copied ✓";setTimeout(()=>$("copy").textContent="Copy XML",1200)};
+function download(){
+  if(!lastXml)return;
+  const blob=new Blob([lastXml],{type:"application/xml"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="vector-icon.xml";a.click();URL.revokeObjectURL(a.href);
+}
+$("download").onclick=download;$("downloadTop").onclick=download;
+$("reset").onclick=()=>{$("width").value="24dp";$("height").value="24dp";convert()};
+$("source").addEventListener("keydown",e=>{if(e.ctrlKey&&e.key==="Enter")convert()});
+</script>
+</body>
+</html>
